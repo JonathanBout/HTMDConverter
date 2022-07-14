@@ -8,29 +8,29 @@ namespace DeltaDev.HTMD
         public static readonly MDRegEx[] mdRegEx = new MDRegEx[]
         {
             new MDRegEx(new Regex(@"(?<=#{3})(.*)"),
-                "<h3>", "</h3>"),                                                   //heading 3         |
-            new MDRegEx(new Regex(@"(?<=#{2})(.*)"),
-                "<h2>", "</h2>"),                                                   //heading 2         |
-            new MDRegEx(new Regex(@"(?<=#{1})(.*)"),
-                "<h1>", "</h1>"),                                                   //heading 1         |
-            new MDRegEx(new Regex(@"(?<=\*{3}).*?(?=\*{3})"),
-                "<i><b>", "</b></i>"),                                              //bold & italic     
-            new MDRegEx(new Regex(@"(?<=\*{2}).*?(?=\*{2})"),
-                "<b>", "</b>"),                                                     //bold              |
-            new MDRegEx(new Regex(@"(?<=\*{1}).*?(?=\*{1})"),
-                "<i>", "</i>"),                                                     //italic            |
-            new MDRegEx(new Regex(@"(?<=\>{1})(.*)"),
-                "<blockquote>", "</blockquote>"),                                   //blockquote        |
-            new MDRegEx(new Regex(@"(?<=[1-9]{1,2}\.(\s?))(.*)"),
-                "<li>", "</li>", "<ol>", "</ol>"),                                  //ordered list      |
-            new MDRegEx(new Regex(@"(?<=\-)(.*)"),
-                "<li>", "</li>", "<ul>", "</ul>"),                                  //unordered list    |
-            new MDRegEx(new Regex(@"(?<=\`{1}).*?(?=\`{1})"),                       
-                "<code>", "</code>"),                                               //code block        |
+                "<h3>", "</h3>"),                               //heading 3         |
+            new MDRegEx(new Regex(@"(?<=#{2})(.*)"),            //                  |
+                "<h2>", "</h2>"),                               //heading 2         |
+            new MDRegEx(new Regex(@"(?<=#{1})(.*)"),            //                  |
+                "<h1>", "</h1>"),                               //heading 1         |
+            new MDRegEx(new Regex(@"\*{3}([^*]{1,}?)\*{3}"),    //                  |
+                "<i><b>", "</b></i>"),                          //bold & italic     |
+            new MDRegEx(new Regex(@"\*{2}([^*]{1,}?)\*{2}"),    //                  |
+                "<b>", "</b>"),                                 //bold              |
+            new MDRegEx(new Regex(@"\*{1}([^*]{1,}?)\*{1}"),    //                  |
+                "<i>", "</i>"),                                 //italic            |
+            new MDRegEx(new Regex(@"> *([^\n]*)"),              //                  |
+                "<blockquote>", "</blockquote>"),               //blockquote        |
+            new MDRegEx(new Regex(@"[0-9]([^\n]*)"),            //                  |
+                "<li>", "</li>", "<ol>", "</ol>"),              //ordered list      |
+            new MDRegEx(new Regex(@"[-]([^\n]*)"),              //                  |
+                "<li>", "</li>", "<ul>", "</ul>"),              //unordered list    |
+            new MDRegEx(new Regex(@"\`{1}([^`\n]{1,}?)\`{1}"),  //                  |
+                "<code>", "</code>"),                           //code block        |
         };
 
         
-        public static string ToHTML(string htmd)
+        public static string MultiLineToHTML(string htmd)
         {
             return "";
         }
@@ -41,9 +41,30 @@ namespace DeltaDev.HTMD
             if (match.pattern is not null)
             {
                 var startMatch = match.pattern.Match(statement);
-                return match.htmlOpenTag + startMatch.Groups[0].Value.Trim() + match.htmlCloseTag;
+                return match.htmlOpenTag + startMatch.Groups[1].Value.Trim() + match.htmlCloseTag;
             }
             return "";
+        }
+
+        public static string SingleLineToHTML(string line)
+        {
+            MDRegEx[] regExMatches = mdRegEx.Where(x => x.pattern is not null && x.pattern.IsMatch(line)).ToArray();
+            foreach (var regExMatch in regExMatches)
+            {
+                if (regExMatch.pattern is not null)
+                {
+                    var match = regExMatch.pattern.Match(line);
+                    do
+                    {
+                        line = line.Remove(match.Index, match.Length);
+                        line = line.Insert(match.Index, regExMatch.htmlOpenTag + match.Groups[1].Value.Trim() + regExMatch.htmlCloseTag);
+
+                        match = match.NextMatch();
+                    } while (match.Success);
+                    
+                }
+            }
+            return line.Trim().Replace("\n", "<br>");
         }
 
         public static string Between(this string input, string start, string end)
@@ -55,6 +76,9 @@ namespace DeltaDev.HTMD
             return FinalString;
         }
 
+        /// <summary>
+        /// Regular Expressions for markdown, including the open and close HTML-tag, and the parent tags.
+        /// </summary>
         public readonly struct MDRegEx
         {
             public readonly Regex? pattern = null;

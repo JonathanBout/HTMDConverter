@@ -75,4 +75,32 @@ namespace DeltaDev.HTMD.Tests
             Assert.AreEqual(expectedHtml, HTMDConvert.SingleStatementToHTML(htmd));
         }
     }
+
+    [TestClass]
+    public class SingleLineTests
+    {
+        [TestMethod]
+        public void Full()
+        {
+            string htmd = ">**Hello, World!** unchanged text *hehe* more unchanged text `some code`";
+            string expectedHtml = "<blockquote><b>Hello, World!</b> unchanged text <i>hehe</i> more unchanged text <code>some code</code></blockquote>";
+            Assert.AreEqual(expectedHtml, HTMDConvert.SingleLineToHTML(htmd));
+        }
+
+        [STAThread]
+        public static void Main()
+        {
+            while(true)
+            {
+                Console.WriteLine("Enter a line of HTMD:");
+                if (Console.ReadLine() is string htmd)
+                {
+                    Console.WriteLine(HTMDConvert.SingleLineToHTML(htmd));        
+                }else
+                {
+                    Console.WriteLine("Invalid input");
+                }
+            }
+        }
+    }
 }

@@ -9,7 +9,7 @@
 
     <RootNamespace>DeltaDev.HTMD.Tests</RootNamespace>
 
-    <StartupObject></StartupObject>
+    <StartupObject>DeltaDev.HTMD.Tests.SingleLineTests</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
