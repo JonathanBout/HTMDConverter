@@ -34,6 +34,15 @@ namespace DeltaDev.HTMD.Tests
         }
 
         [TestMethod]
+        public void BoldAndItalic()
+        {
+            string htmd = "***Hello, World!***";
+            string expectedHtml = "<i><b>Hello, World!</b></i>";
+
+            Assert.AreEqual(expectedHtml, HTMDConvert.SingleStatementToHTML(htmd));
+        }
+
+        [TestMethod]
         public void OrderedList()
         {
             string htmd = "1. Item 1";
@@ -55,6 +64,14 @@ namespace DeltaDev.HTMD.Tests
             string htmd = "# HEADING 1";
                                   
             string expectedHtml = @"<h1>HEADING 1</h1>";
+            Assert.AreEqual(expectedHtml, HTMDConvert.SingleStatementToHTML(htmd));
+        }
+
+        [TestMethod]
+        public void Code()
+        {
+            string htmd = "`a code block`";
+            string expectedHtml = "<code>a code block</code>";
             Assert.AreEqual(expectedHtml, HTMDConvert.SingleStatementToHTML(htmd));
         }
     }

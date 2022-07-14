@@ -9,7 +9,7 @@
 
     <RootNamespace>DeltaDev.HTMD.Tests</RootNamespace>
 
-    <StartupObject>DeltaDev.HTMD.Tests.ConvertTests</StartupObject>
+    <StartupObject></StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

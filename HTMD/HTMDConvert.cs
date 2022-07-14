@@ -13,16 +13,20 @@ namespace DeltaDev.HTMD
                 "<h2>", "</h2>"),                                                   //heading 2         |
             new MDRegEx(new Regex(@"(?<=#{1})(.*)"),
                 "<h1>", "</h1>"),                                                   //heading 1         |
+            new MDRegEx(new Regex(@"(?<=\*{3}).*?(?=\*{3})"),
+                "<i><b>", "</b></i>"),                                              //bold & italic     
             new MDRegEx(new Regex(@"(?<=\*{2}).*?(?=\*{2})"),
                 "<b>", "</b>"),                                                     //bold              |
             new MDRegEx(new Regex(@"(?<=\*{1}).*?(?=\*{1})"),
                 "<i>", "</i>"),                                                     //italic            |
-            new MDRegEx(new Regex(@"(?<=>)(.*)"),
+            new MDRegEx(new Regex(@"(?<=\>{1})(.*)"),
                 "<blockquote>", "</blockquote>"),                                   //blockquote        |
             new MDRegEx(new Regex(@"(?<=[1-9]{1,2}\.(\s?))(.*)"),
                 "<li>", "</li>", "<ol>", "</ol>"),                                  //ordered list      |
             new MDRegEx(new Regex(@"(?<=\-)(.*)"),
-                "<li>", "</li>", "<ul>", "</ul>")                                   //unordered list    |
+                "<li>", "</li>", "<ul>", "</ul>"),                                  //unordered list    |
+            new MDRegEx(new Regex(@"(?<=\`{1}).*?(?=\`{1})"),                       
+                "<code>", "</code>"),                                               //code block        |
         };
 
         
