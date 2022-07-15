@@ -14,7 +14,7 @@ It's not a lot, but it will grow soon, I think.
 ## Testing the converter
 To test it, just execute the test project. This will open up a console window that gives the following options:
 ### a line of Markdown
-(use with `l`)
+(use with `l`)  
 This allows you to enter a line of Markdown, and then converts it to HTML.
 #### Example
 ```markdown
@@ -25,7 +25,7 @@ gives
 <blockquote><b>Hello</b> <i>World</i>!</blockquote>
 ```
 ### a Markdown file
-(use with `f`)
+(use with `f`)  
 This allows you to enter the path to a Markdown file. By default, this gets printed to the console.  
 By adding `>>>` after the link to the markdown file you can add an output file.
 #### Example
