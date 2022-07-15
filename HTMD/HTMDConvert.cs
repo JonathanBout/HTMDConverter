@@ -4,35 +4,35 @@ namespace DeltaDev.HTMD
 {
     public static class HTMDConvert
     {
+        const RegexOptions regexOptions = RegexOptions.Multiline;
         //public static readonly string[] mdRegEx = new[] { "#{1,3}", "*", ">", "[1-9]{1,2}." };
         public static readonly MDRegEx[] mdRegEx = new MDRegEx[]
         {
-            new MDRegEx(new Regex(@"(?<=#{3})(.*)"),
-                "<h3>", "</h3>"),                               //heading 3         |
-            new MDRegEx(new Regex(@"(?<=#{2})(.*)"),            //                  |
-                "<h2>", "</h2>"),                               //heading 2         |
-            new MDRegEx(new Regex(@"(?<=#{1})(.*)"),            //                  |
-                "<h1>", "</h1>"),                               //heading 1         |
-            new MDRegEx(new Regex(@"\*{3}([^*]{1,}?)\*{3}"),    //                  |
-                "<i><b>", "</b></i>"),                          //bold & italic     |
-            new MDRegEx(new Regex(@"\*{2}([^*]{1,}?)\*{2}"),    //                  |
-                "<b>", "</b>"),                                 //bold              |
-            new MDRegEx(new Regex(@"\*{1}([^*]{1,}?)\*{1}"),    //                  |
-                "<i>", "</i>"),                                 //italic            |
-            new MDRegEx(new Regex(@"> *([^\n]*)"),              //                  |
-                "<blockquote>", "</blockquote>"),               //blockquote        |
-            new MDRegEx(new Regex(@"[0-9]([^\n]*)"),            //                  |
-                "<li>", "</li>", "<ol>", "</ol>"),              //ordered list      |
-            new MDRegEx(new Regex(@"[-]([^\n]*)"),              //                  |
-                "<li>", "</li>", "<ul>", "</ul>"),              //unordered list    |
-            new MDRegEx(new Regex(@"\`{1}([^`\n]{1,}?)\`{1}"),  //                  |
-                "<code>", "</code>"),                           //code block        |
+            new MDRegEx(new Regex(@"^#{3}(.*)", regexOptions),                              //                  |
+                "<h3>", "</h3>"),                                                           //heading 3         |
+            new MDRegEx(new Regex(@"^#{2}(.*)", regexOptions),                              //                  |
+                "<h2>", "</h2>"),                                                           //heading 2         |
+            new MDRegEx(new Regex(@"^#{1}(.*)", regexOptions),                              //                  |
+                "<h1>", "</h1>"),                                                           //heading 1         |
+            new MDRegEx(new Regex(@"(?<!\*)\*{3}([^*]{1,}?)\*{3}(?!\*)", regexOptions),     //                  |
+                "<i><b>", "</b></i>"),                                                      //bold & italic     |
+            new MDRegEx(new Regex(@"(?<!\*)\*{2}([^*]{1,}?)\*{2}(?!\*)", regexOptions),     //                  |
+                "<b>", "</b>"),                                                             //bold              |
+            new MDRegEx(new Regex(@"(?<!\*)\*{1}([^*]{1,}?)\*{1}(?!\*)", regexOptions),     //                  |
+                "<i>", "</i>"),                                                             //italic            |
+            new MDRegEx(new Regex(@"^> *([^\r\n]*)", regexOptions),                         //                  |
+                "<blockquote>", "</blockquote>"),                                           //blockquote        |
+            new MDRegEx(new Regex(@"^[0-9] ([^\n]*)", regexOptions),                        //                  |
+                "<li>", "</li>", "<ol>", "</ol>"),                                          //ordered list      |
+            new MDRegEx(new Regex(@"^- ([^\n]*)", regexOptions),                            //                  |
+                "<li>", "</li>", "<ul>", "</ul>"),                                          //unordered list    |
+            new MDRegEx(new Regex(@"\`{1}([^`\n]{1,}?)\`{1}", regexOptions),                //                  |
+                "<code>", "</code>"),                                                       //code block        |
         };
-
-        
+  
         public static string MultiLineToHTML(string htmd)
         {
-            return "";
+            return SingleLineToHTML(htmd).Replace("\r\n", "<br/>").Replace("\n", "<br/>").Replace("\r", "<br/>");
         }
 
         public static string SingleStatementToHTML(string statement)
@@ -45,7 +45,7 @@ namespace DeltaDev.HTMD
             }
             return "";
         }
-
+        
         public static string SingleLineToHTML(string line)
         {
             MDRegEx[] regExMatches = mdRegEx.Where(x => x.pattern is not null && x.pattern.IsMatch(line)).ToArray();
@@ -54,19 +54,19 @@ namespace DeltaDev.HTMD
                 if (regExMatch.pattern is not null)
                 {
                     var match = regExMatch.pattern.Match(line);
-                    do
+                    while (match.Success)
                     {
                         line = line.Remove(match.Index, match.Length);
                         line = line.Insert(match.Index, regExMatch.htmlOpenTag + match.Groups[1].Value.Trim() + regExMatch.htmlCloseTag);
 
-                        match = match.NextMatch();
-                    } while (match.Success);
-                    
+                        match = regExMatch.pattern.Match(line);
+                    }
+
                 }
             }
-            return line.Trim().Replace("\n", "<br>");
+            return line.Trim();
         }
-
+        
         public static string Between(this string input, string start, string end)
         {
             string FinalString;
@@ -87,14 +87,16 @@ namespace DeltaDev.HTMD
             public readonly string? parentOpenTag = null;
             public readonly string? parentCloseTag = null;
 
-            public MDRegEx(Regex pattern, string htmlOpen, string htmlClose)
-            {
-                this.pattern = pattern;
-                htmlOpenTag = htmlOpen;
-                htmlCloseTag = htmlClose;
-            }
-
-            public MDRegEx(Regex pattern, string htmlOpen, string htmlClose, string parentOpen, string parentClose)
+            /// <summary>
+            /// Main constructor
+            /// </summary>
+            /// <param name="pattern">The pattern used to subtract this item from Markdown</param>
+            /// <param name="htmlOpen">The opening tag for this item in HTML</param>
+            /// <param name="htmlClose">The closing tag for this item in HTML</param>
+            /// <param name="parentOpen">The opening tag for this items parent in HTML (optional)</param>
+            /// <param name="parentClose">The closing tag for this items parent in HTML (optional)</param>
+            public MDRegEx(Regex pattern, string htmlOpen, string htmlClose, string? parentOpen = null,
+                string? parentClose = null)
             {
                 this.pattern = pattern;
                 htmlOpenTag = htmlOpen;
