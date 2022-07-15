@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.ConstrainedExecution;
+using System.Text.RegularExpressions;
 
 namespace DeltaDev.HTMD
 {
@@ -22,9 +23,9 @@ namespace DeltaDev.HTMD
                 "<i>", "</i>"),                                                             //italic            |
             new MDRegEx(new Regex(@"^> *([^\r\n]*)", regexOptions),                         //                  |
                 "<blockquote>", "</blockquote>"),                                           //blockquote        |
-            new MDRegEx(new Regex(@"^[0-9] ([^\n]*)", regexOptions),                        //                  |
+            new MDRegEx(new Regex(@"^[0-9]. *([^\n]*)", regexOptions),                      //                  |
                 "<li>", "</li>", "<ol>", "</ol>"),                                          //ordered list      |
-            new MDRegEx(new Regex(@"^- ([^\n]*)", regexOptions),                            //                  |
+            new MDRegEx(new Regex(@"^- *([^\n]*)", regexOptions),                           //                  |
                 "<li>", "</li>", "<ul>", "</ul>"),                                          //unordered list    |
             new MDRegEx(new Regex(@"\`{1}([^`\n]{1,}?)\`{1}", regexOptions),                //                  |
                 "<code>", "</code>"),                                                       //code block        |
@@ -32,7 +33,36 @@ namespace DeltaDev.HTMD
   
         public static string MultiLineToHTML(string htmd)
         {
-            return SingleLineToHTML(htmd).Replace("\r\n", "<br/>").Replace("\n", "<br/>").Replace("\r", "<br/>");
+            string result = "";
+            MDRegEx[] prev = new MDRegEx[0];
+            foreach (string line in htmd.Split(Environment.NewLine, StringSplitOptions.None))
+            {
+                (string, MDRegEx[]) lineResult = ConvertSingleLine(line);
+                string convertedLine = lineResult.Item1;
+                MDRegEx[] cur = lineResult.Item2;
+                bool prevWasSame = false;
+                if (prev.Any(x => !string.IsNullOrEmpty(x.parentOpenTag)))
+                {
+                    if (!cur.Any(x => prev.Any(y => y.parentCloseTag == x.parentCloseTag)))
+                    {
+                        result += prev.First(x => !string.IsNullOrEmpty(x.parentCloseTag)).parentCloseTag;
+                    }else
+                    {
+                        prevWasSame = true;
+                    }
+                }
+                if (!prevWasSame && cur.FirstOrDefault(x => !string.IsNullOrEmpty(x.parentOpenTag)) is MDRegEx curFirst)
+                {
+                    result += curFirst.parentOpenTag;
+                }
+                result += convertedLine + "<br/>";
+                prev = cur;
+            }
+            if (prev.Any(x => !string.IsNullOrEmpty(x.parentOpenTag)))
+            {
+                result += prev.First(x => !string.IsNullOrEmpty(x.parentCloseTag)).parentCloseTag;
+            }
+            return result;
         }
 
         public static string SingleStatementToHTML(string statement)
@@ -46,7 +76,7 @@ namespace DeltaDev.HTMD
             return "";
         }
         
-        public static string SingleLineToHTML(string line)
+        public static (string, MDRegEx[]) ConvertSingleLine(string line)
         {
             MDRegEx[] regExMatches = mdRegEx.Where(x => x.pattern is not null && x.pattern.IsMatch(line)).ToArray();
             foreach (var regExMatch in regExMatches)
@@ -64,9 +94,15 @@ namespace DeltaDev.HTMD
 
                 }
             }
-            return line.Trim();
+            return (line.Trim(), regExMatches);
         }
-        
+
+        public static string SingleLineToHTML(string line)
+        {
+            return ConvertSingleLine(line).Item1;
+        }
+
+
         public static string Between(this string input, string start, string end)
         {
             string FinalString;

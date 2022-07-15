@@ -133,20 +133,7 @@ namespace DeltaDev.HTMD.Tests
         public void Full()
         {
             string htmd = File.ReadAllText(@"C:\Users\jonat\Downloads\helloworld.htmd");
-            string expectedHtml = 
-@"This file should be valid HTML, after converting.
-<blockquote>
-This is a blockquote
-</blockquote>
-<em>Italic</em> <strong>bold</strong>
-<ol>
-<li>a</li>
-<li>b</li>
-</ol>
-<ul>
-<li>a</li>
-<li>b</li>
-</ul>";
+            string expectedHtml = "<h1>Hello, World!</h1><br/><br/>This file should be valid HTML, after converting.<br/><blockquote>This is a blockquote</blockquote><br/><br/><i>Italic</i> <b>bold</b><br/><br/><ol><li>a</li><br/><li>b</li><br/></ol><br/><ul><li>a</li><br/><li>b</li><br/></ul>";
             Assert.AreEqual(expectedHtml, HTMDConvert.MultiLineToHTML(htmd));
         }
     }
@@ -156,19 +143,61 @@ This is a blockquote
         [STAThread]
         public static void Main()
         {
+            Console.Write("Do you want to convert a single line or a file? (l/f)");
             while(true)
             {
-                Console.Write("Enter a line of HTMD: ");
-                if (Console.ReadLine() is string htmd)
+                Console.Title = "HTMD Converter" + (Debugger.IsAttached ? " in Debug mode" : "");
+                switch (Console.ReadKey().Key)
                 {
-                    Console.WriteLine(HTMDConvert.SingleLineToHTML(htmd));
-                    Console.Title = "HTMD Converter" + (Debugger.IsAttached ? " in Debug mode": "");
+                    case ConsoleKey.L:
+                        Console.WriteLine();
+                        ConvertLine();
+                        break;
+                    case ConsoleKey.F:
+                        Console.WriteLine();
+                        ReadURL();
+                        break;
+                    case ConsoleKey.Q:
+                        return;
+                    default:
+                        Console.WriteLine(Environment.NewLine + "Invalid input. l or f expected.");
+                        continue;
                 }
-                else
+                Console.Write("Do you want to convert another line or file (n or q to quit)? (l/f/n)");
+            }
+        }
+
+        public static void ConvertLine()
+        {
+            Console.Write("Enter a line of HTMD: ");
+            if (Console.ReadLine() is string htmd)
+            {
+                Console.WriteLine(HTMDConvert.SingleLineToHTML(htmd));
+            }
+            else
+            {
+                Console.WriteLine("Invalid input");
+            }
+        }
+        
+        public static void ReadURL()
+        {
+            Console.Write("Enter the URL to a local file: ");
+            if (Console.ReadLine() is string url)
+            {
+                try
                 {
-                    Console.WriteLine("Invalid input");
+                    Console.WriteLine(HTMDConvert.MultiLineToHTML(File.ReadAllText(url)));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("{2}Error:     {0}{2}Help link: {1}", ex.Message, ex.HelpLink, Environment.NewLine);
                 }
             }
-        }      
+            else
+            {
+                Console.WriteLine("Invalid input.");
+            }
+        }
     }
 }
