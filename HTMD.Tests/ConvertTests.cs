@@ -143,7 +143,7 @@ namespace DeltaDev.HTMD.Tests
         [STAThread]
         public static void Main()
         {
-            Console.Write("Do you want to convert a single line or a file? (l/f)");
+            Console.Write("Do you want to convert a single line or a file? (l/f) ");
             while(true)
             {
                 Console.Title = "HTMD Converter" + (Debugger.IsAttached ? " in Debug mode" : "");
@@ -160,10 +160,10 @@ namespace DeltaDev.HTMD.Tests
                     case ConsoleKey.Q:
                         return;
                     default:
-                        Console.WriteLine(Environment.NewLine + "Invalid input. l or f expected.");
+                        Console.Write(Environment.NewLine + "Invalid input. l or f expected. ");
                         continue;
                 }
-                Console.Write("Do you want to convert another line or file (n or q to quit)? (l/f/n)");
+                Console.Write("Do you want to convert another line or file (n or q to quit)? (l/f/n) ");
             }
         }
 
@@ -187,11 +187,22 @@ namespace DeltaDev.HTMD.Tests
             {
                 try
                 {
-                    Console.WriteLine(HTMDConvert.MultiLineToHTML(File.ReadAllText(url)));
+                    string[] splits = url.Split(">>>");
+                    string? outputDir = null;
+                    if (splits.Length > 1)
+                    {
+                        outputDir = splits[1].Trim();
+                        url = splits[0].Trim();
+                        File.WriteAllText(outputDir, HTMDConvert.SingleLineToHTML(File.ReadAllText(url)));
+                        Console.WriteLine("Output is stored at {0}.", outputDir);
+                    }else
+                    {
+                        Console.WriteLine(HTMDConvert.MultiLineToHTML(File.ReadAllText(url)));
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("{2}Error:     {0}{2}Help link: {1}", ex.Message, ex.HelpLink, Environment.NewLine);
+                    Console.WriteLine("{2}Error:     {0}{2}Help link: {1}", ex.Message, string.IsNullOrEmpty(ex.HelpLink)?"(none)" : ex.HelpLink, Environment.NewLine);
                 }
             }
             else
